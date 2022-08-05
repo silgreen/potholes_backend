@@ -31,8 +31,10 @@ int main(int argc, char const *argv[])
 
     if((val_read = read(new_socket,buffer,2048)) < 0) perror("lettura non riuscita");
 
-    invia_soglia(new_socket);
-    printf("%s\n",buffer);
+    //invia_soglia(new_socket);
+    char *str3 = calcola_evento(4);
+    printf("%s %s\n",buffer,str3);
+    send(new_socket,str3,strlen(str3),0);
     close(new_socket);
 }
 
@@ -41,4 +43,12 @@ void invia_soglia(int fd) {
         perror("errore nell'invio della soglia\n");
     }
     printf("soglia inviata al client\n");
+}
+
+char* calcola_evento(double delta) {
+    return delta > 0 ? DOSSO : BUCA; 
+}
+
+char* mostra_eventi_vicini(Posizione pos) {
+    //todo
 }
