@@ -5,12 +5,12 @@
 #include <stdio.h>
 #include <stdlib.h> 
 #include <arpa/inet.h>
-#include "../struct/Posizione.h"
+#include "../struct/Evento.h"
 #define SOGLIA "3"
 #define BUCA "Buca"
 #define DOSSO "Dosso"
 
 void invia_soglia(int socket);
 char* calcola_evento(double delta);
-char* mostra_eventi_vicini(Posizione pos); 
+char* mostra_eventi_vicini(Evento event); 
 
