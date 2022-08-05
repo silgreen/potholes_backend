@@ -5,10 +5,11 @@ int main(int argc, char const *argv[])
     int server_fd,new_socket,val_read,addr_len,client_len;
     struct sockaddr_in address;
     struct sockaddr client;
-    EventoClient event;
-    char buffer[1024] = {0};
+    FILE *fp;
+    char buffer[2048] = {0};
+    char buffer2[1024] = {0};
     char *msg = "hello from server\n";
-    int n[1];
+    char *msg2 = "hello from server\n";
     
     if((server_fd = socket(AF_INET,SOCK_STREAM,0)) < 0) {
         perror("creazione socket non riuscita");
@@ -26,10 +27,18 @@ int main(int argc, char const *argv[])
 
     listen(server_fd,5);
     
-    //new_socket = accept(server_fd,&client,client_len);
     new_socket = accept(server_fd,NULL,NULL);
-    val_read = read(new_socket,buffer,1024);
-    val_read = read(new_socket,n,sizeof(int));
-    printf("%s %d\n",buffer,n[0]);
-    send(new_socket,msg,strlen(msg),0);
+
+    if((val_read = read(new_socket,buffer,2048)) < 0) perror("lettura non riuscita");
+
+    invia_soglia(new_socket);
+    printf("%s\n",buffer);
+    close(new_socket);
+}
+
+void invia_soglia(int fd) {
+    if(send(fd,SOGLIA,strlen(SOGLIA),0) < 0) {
+        perror("errore nell'invio della soglia\n");
+    }
+    printf("soglia inviata al client\n");
 }

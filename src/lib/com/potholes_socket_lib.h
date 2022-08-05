@@ -5,11 +5,6 @@
 #include <stdio.h>
 #include <stdlib.h> 
 #include <arpa/inet.h>
+#define SOGLIA "3"
 
-typedef struct EventoClient {
-    long latitudine;
-    long longitudine;
-    char *client_nickname;
-    time_t timestamp;
-    double valore;
-}EventoClient;
+void invia_soglia(int socket);
