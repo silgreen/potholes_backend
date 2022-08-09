@@ -1,5 +1,4 @@
-#include <stdbool.h>
-#include <stdlib.h>
+#include "../dependencies.h"
 #include "Posizione.h"
 
 /* Definizione strutture */

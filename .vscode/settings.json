@@ -1,6 +1,7 @@
 {
     "files.associations": {
         "stdlib.h": "c",
-        "potholes_socket_lib.h": "c"
+        "potholes_socket_lib.h": "c",
+        "dependencies.h": "c"
     }
 }
