@@ -49,6 +49,6 @@ char* calcola_evento(double delta) {
     return delta > 0 ? DOSSO : BUCA; 
 }
 
-char* mostra_eventi_vicini(Posizione pos) {
+char* mostra_eventi_vicini(Evento pos) {
     //todo
 }
