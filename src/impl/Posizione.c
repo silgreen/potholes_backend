@@ -1,4 +1,5 @@
 #include "../lib/struct/Posizione.h"
+#include "../lib/dependencies.h"
 
 bool validationLatLng(double lat, double lng) {
     return (lat >= -90 && lat <= 90) && (lng >= -180 && lng <= 180);
@@ -16,12 +17,13 @@ Posizione creaPosizione(double lat, double lng) {
 }
 
 char *posizioneToString(Posizione position) {
-    char *lat;
-    char *lng;
-    sprintf(lat,"%lf",position->latitudine);
-    sprintf(lng,"%lf",position->longitudine);
-    strcat(lat,":"); 
-    return strcat(lat,lng);
+    char lat[32];
+    char lng[32];
+    char *result;
+    snprintf(lat,32,"%lf",position->latitudine);
+    snprintf(lng,32,"%lf",position->longitudine); 
+    result = strcat(lat,lng);
+    return result;
 }
 
 double calcolaDistanza(Posizione position1,Posizione position2) {
