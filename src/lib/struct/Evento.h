@@ -23,9 +23,9 @@ typedef struct EventoList_struct *EventoList;
 /***********************************************************/
 
 /* Definizione metodi */
-bool hasNext(EventoList list);
-EventoList next(EventoList list);
+EventoList creaEventoList(Evento evento);
 Evento creaEvento(char *tipo_evento,Posizione posizione);
-bool inserisciEvento(Evento evento,EventoList evento_list);
-char *eventoToString(Evento evento);
-EventoList mostraEventiVicini(EventoList evento_list,Posizione posizione);
+EventoList inserisciEvento(EventoList list,Evento evento);
+void printEvento(Evento evento);
+EventoList mostraEventiVicini(EventoList evento_list,EventoList resultList,Posizione posizione);
+void printEventoList(EventoList list);

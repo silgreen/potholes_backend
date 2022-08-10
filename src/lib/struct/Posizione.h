@@ -10,6 +10,6 @@ typedef struct Posizione_struct *Posizione;
 
 Posizione creaPosizione(double lat,double lng);
 bool validationLatLng(double lat,double lng);
-char *posizioneToString(Posizione pos);
+void printPosizione(Posizione pos);
 double calcolaDistanza(Posizione pos1,Posizione pos2);
 

@@ -16,14 +16,8 @@ Posizione creaPosizione(double lat, double lng) {
     return position;
 }
 
-char *posizioneToString(Posizione position) {
-    char lat[32];
-    char lng[32];
-    char *result;
-    snprintf(lat,32,"%lf",position->latitudine);
-    snprintf(lng,32,"%lf",position->longitudine); 
-    result = strcat(lat,lng);
-    return result;
+void printPosizione(Posizione position) {
+    printf("%lf:%lf\n",position->latitudine,position->longitudine);
 }
 
 double calcolaDistanza(Posizione position1,Posizione position2) {
