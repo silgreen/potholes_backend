@@ -9,10 +9,11 @@ int main(int argc, char const *argv[])
     fd = socket(AF_INET,SOCK_STREAM,0);
     address.sin_family = AF_INET;
     address.sin_port = htons(8080);
-    inet_pton(AF_INET,"192.168.79.130",&address.sin_addr);
+    inet_pton(AF_INET,"172.17.159.14",&address.sin_addr);
 
     connect(fd,(struct sockaddr *)&address,sizeof(address));
     write(fd,str,strlen(str));
+    sleep(5);
     val_read = read(fd,buffer,1024);
     printf("%s",buffer);
     close(fd);

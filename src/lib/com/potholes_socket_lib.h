@@ -7,4 +7,5 @@
 
 void invia_soglia(int socket);
 char* calcola_evento(double delta); 
+void init_address(struct sockaddr_in *address);
 

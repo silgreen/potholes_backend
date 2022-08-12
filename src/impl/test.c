@@ -12,14 +12,22 @@ int main(int argc, char const *argv[])
     Evento ev2 = creaEvento("Dosso",p2);
     Evento ev3 = creaEvento("Dosso",p3);
     Evento ev4 = creaEvento("Buca",p4);
-    EventoList eventoListVicini = NULL;
-    EventoList eventoList = NULL;
-    eventoList = inserisciEvento(eventoList,ev2);
-    eventoList = inserisciEvento(eventoList,ev3);
-    eventoList = inserisciEvento(eventoList,ev4);
+
+    FILE *fp = fopen("prova.txt","w");
+    fprintf(fp,"%s %lf %lf\n",ev3->tipo_evento,ev3->posizione->latitudine,ev3->posizione->longitudine);
+    fclose(fp);
+
+    FILE *fpr = fopen("prova.txt","r");
+    char str1[256];
+    char str2[256];
+    char str3[256];
+
+    while (fscanf(fpr,"%s%s%s",str1,str2,str3) > 0)
+    {
+        printf("%s %s %s\n",str1,str2,str3);
+    }
+    fclose(fpr);
     
-    eventoListVicini = mostraEventiVicini(eventoList,eventoListVicini,p);
-    printEventoList(eventoListVicini);
 
     return 0;
 }
