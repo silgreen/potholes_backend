@@ -1,13 +1,18 @@
 #include "../lib/com/potholes_socket_lib.h"
 
+void *invia_messaggio_client(void *arg);
+void gestisci_richiesta(int socket);
+
 int main(int argc, char const *argv[])
-{
+{   
+    char buffer[1024];
+    char ok[3] = "OK"; 
     int server_fd,new_socket,val_read,addr_len;
     struct sockaddr_in address;
-    char buffer[2048] = {0};
+    pthread_t thread;
     
     
-    if((server_fd = socket(AF_INET,SOCK_STREAM,0)) < 0) {
+    if((server_fd = socket(AF_INET,SOCK_SEQPACKET,0)) < 0) {
         perror("creazione socket non riuscita");
         return EXIT_FAILURE;
     }
@@ -21,24 +26,40 @@ int main(int argc, char const *argv[])
     }
 
     listen(server_fd,5);
-
     while (true)
-    {
-        new_socket = accept(server_fd,NULL,NULL);   
-        invia_soglia(new_socket);
-        char *str3 = calcola_evento(4);
-        printf("%s %s\n",buffer,str3);
-        send(new_socket,str3,strlen(str3),0);
-        if((val_read = read(new_socket,buffer,2048)) < 0) perror("lettura non riuscita");
+    {  
+        
+        if((new_socket = accept(server_fd,NULL,NULL)) < 0) perror("errore durante l'accept");
+        if(read(new_socket,buffer,sizeof(buffer)) < 0) perror("errore in lettura");
+        if(strcmp(buffer,"soglia") == 0) {
+            send(new_socket,ok,sizeof(ok),0);
+        } 
+        char *msg = "a fess e mammt";
+        memset(buffer,0,sizeof(buffer));
+        read(new_socket,buffer,sizeof(buffer));
+        printf("%s\n",buffer);
+        send(new_socket,msg,strlen(msg),0);
+        close(new_socket);
+        
+        //if(pthread_create(&thread,NULL,invia_soglia,&new_socket) < 0) perror("errore nella creazione del thread");
+
     }
-    close(new_socket);
 }
 
-void invia_soglia(int socket) {
-    if(send(socket,SOGLIA,strlen(SOGLIA),0) < 0) {
-        perror("errore nell'invio della soglia\n");
-    }
-    printf("soglia inviata al client\n");
+void gestisci_richiesta(int socket) {
+    pthread_t thread;
+    char lettura_richiesta[1024];
+    read(socket,lettura_richiesta,sizeof(lettura_richiesta));
+
+    if(strcmp(lettura_richiesta,"soglia") == 0) {
+        pthread_create(thread,NULL,invia_soglia,&socket);
+
+    } else if(strcmp(lettura_richiesta,"lista") == 0) {
+        
+    } else if (strcmp(lettura_richiesta,"evento") == 0) {
+
+    } else printf("operazione non supportata\n");
+
 }
 
 char* calcola_evento(double delta) {
@@ -49,5 +70,25 @@ void init_address(struct sockaddr_in *address) {
     address->sin_family = AF_INET;
     address->sin_port = htons(8080);
     address->sin_addr.s_addr = INADDR_ANY;
+}
+
+void *invia_soglia(void *arg) {
+    int socket = *(int*)arg;
+    char buffer[10];
+    strcpy(buffer,SOGLIA);
+
+    if(send(socket,buffer,sizeof(buffer),0) < 0) perror("errore nell'invio della soglia");
+    printf("soglia inviata al client\n");
+    close(socket);
+}
+
+void *invia_messaggio_client(void *arg) {
+    char msg[] = "ciao come stai";
+    int socket = *(int*)arg;
+    if(send(socket,msg,sizeof(msg),0) < 0) {
+        perror("errore nell'invio del messaggio\n");
+    }
+    printf("messaggio inviato\n");
+    close(socket);
 }
 
