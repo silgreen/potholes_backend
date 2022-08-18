@@ -11,11 +11,12 @@ EventoList creaEventoList(Evento evento) {
     return NULL;
 }
 
-Evento creaEvento(char *tipo_evento,Posizione position) {
+Evento creaEvento(char *tipo_evento,char *nickname,Posizione position) {
     if(position != NULL && (strcmp(tipo_evento,BUCA) == 0) || strcmp(tipo_evento,DOSSO) == 0) {
         Evento evento = (Evento) malloc(sizeof(struct Evento_struct));
         evento->posizione = position;
         strcpy(evento->tipo_evento,tipo_evento);
+        strcpy(evento->nickname,nickname);
         return evento;
     } 
     perror("creazione evento non riuscita");
@@ -24,6 +25,7 @@ Evento creaEvento(char *tipo_evento,Posizione position) {
 
 void printEvento(Evento evento) {
     if(evento == NULL) return;
+    printf("%s | ",evento->nickname);
     printf("%s | ",evento->tipo_evento);
     printPosizione(evento->posizione);
 }

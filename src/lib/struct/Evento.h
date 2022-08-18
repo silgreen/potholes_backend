@@ -6,6 +6,7 @@
 /* Definizione strutture */
 typedef struct Evento_struct 
 {
+    char nickname[BUFSIZ];
     char tipo_evento[5];
     Posizione posizione;
 }Evento_struct;
@@ -24,7 +25,7 @@ typedef struct EventoList_struct *EventoList;
 
 /* Definizione metodi */
 EventoList creaEventoList(Evento evento);
-Evento creaEvento(char *tipo_evento,Posizione posizione);
+Evento creaEvento(char *tipo_evento,char *nickname,Posizione posizione);
 EventoList inserisciEvento(EventoList list,Evento evento);
 void printEvento(Evento evento);
 EventoList mostraEventiVicini(EventoList evento_list,EventoList resultList,Posizione posizione);

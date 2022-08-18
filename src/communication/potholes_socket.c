@@ -5,17 +5,23 @@ void gestisci_richiesta(int socket);
 
 int main(int argc, char const *argv[])
 {   
-    char buffer[1024];
-    char ok[3] = "OK"; 
-    int server_fd,new_socket,val_read,addr_len;
+    char buffer[BUFSIZ]; 
+    char nickname[BUFSIZ];
+    Evento ev = NULL;
+    Posizione pos = NULL;
+    int server_fd,new_socket,delta,addr_len;
+    int option = 1;
     struct sockaddr_in address;
     pthread_t thread;
+    double lat,lng;
+    char str2[BUFSIZ];
     
     
-    if((server_fd = socket(AF_INET,SOCK_SEQPACKET,0)) < 0) {
+    if((server_fd = socket(AF_INET,SOCK_STREAM,0)) < 0) {
         perror("creazione socket non riuscita");
         return EXIT_FAILURE;
     }
+    setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &option, sizeof(option));
 
     init_address(&address);
     addr_len = sizeof(address);
@@ -30,16 +36,44 @@ int main(int argc, char const *argv[])
     {  
         
         if((new_socket = accept(server_fd,NULL,NULL)) < 0) perror("errore durante l'accept");
-        if(read(new_socket,buffer,sizeof(buffer)) < 0) perror("errore in lettura");
-        if(strcmp(buffer,"soglia") == 0) {
-            send(new_socket,ok,sizeof(ok),0);
-        } 
-        char *msg = "a fess e mammt";
-        memset(buffer,0,sizeof(buffer));
-        read(new_socket,buffer,sizeof(buffer));
-        printf("%s\n",buffer);
-        send(new_socket,msg,strlen(msg),0);
+        if((read(new_socket,buffer,BUFSIZ)) < 0) perror("errore durante la lettura");
+        char *str;
+        FILE *fp;
+        str = strtok(buffer,";");
+        if((fp = fopen("temp.txt","w")) < 0) perror("errore apertura file");
+
+        while (str != NULL) {
+            fprintf(fp,"%s ",str);
+            str = strtok(NULL,";");
+        }
+        fclose(fp);
+
+        sprintf(buffer,"%lf:%lf",12.345,12.34);
+        send(new_socket,buffer,strlen(buffer),0);
         close(new_socket);
+/*
+        if((fp = fopen("temp.txt","r")) < 0) perror("errore apertura file");
+        while((fscanf(fp,"%s%lf%lf%d",nickname,&lat,&lng,&delta)) != EOF) {
+            fclose(fp);
+            ev = creaEvento(calcola_evento(delta),nickname,creaPosizione(lat,lng));
+            printEvento(ev);
+
+            if((send(new_socket,ev->tipo_evento,strlen(ev->tipo_evento),0)) < 0) perror("invio non riuscito");
+            close(new_socket);
+
+            if ((fp = fopen("../../data/events.txt","a")) < 0) perror("errore apertura file");
+            fprintf(fp,"%s %s %lf %lf\n",ev->nickname,ev->tipo_evento,ev->posizione->latitudine,ev->posizione->longitudine);
+        }
+        fclose(fp);
+
+        if ((fp = fopen("../../data/events.txt","r")) < 0) perror("errore apertura file");
+        char c;
+        while(c = getc(fp) != "\n") {
+            putc(c,stdout);
+        }
+        
+    */
+
         
         //if(pthread_create(&thread,NULL,invia_soglia,&new_socket) < 0) perror("errore nella creazione del thread");
 
