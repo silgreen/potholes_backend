@@ -2,11 +2,15 @@
 
 void *invia_messaggio_client(void *arg);
 void gestisci_richiesta(int socket);
+void convert_lat_lng(char data[][BUFSIZ],double *lat,double *lng);
+void deserialize_data(char data[][BUFSIZ],char *token);
 
 int main(int argc, char const *argv[])
 {   
     char buffer[BUFSIZ]; 
     char nickname[BUFSIZ];
+    char data[4][BUFSIZ] = {""};
+    char *strtoken;
     Evento ev = NULL;
     Posizione pos = NULL;
     int server_fd,new_socket,delta,addr_len;
@@ -32,27 +36,21 @@ int main(int argc, char const *argv[])
     }
 
     listen(server_fd,5);
+
     while (true)
     {  
-        
         if((new_socket = accept(server_fd,NULL,NULL)) < 0) perror("errore durante l'accept");
         if((read(new_socket,buffer,BUFSIZ)) < 0) perror("errore durante la lettura");
-        char *str;
-        FILE *fp;
-        str = strtok(buffer,";");
-        if((fp = fopen("temp.txt","w")) < 0) perror("errore apertura file");
-
-        while (str != NULL) {
-            fprintf(fp,"%s ",str);
-            str = strtok(NULL,";");
-        }
-        fclose(fp);
-
-        sprintf(buffer,"%lf:%lf",12.345,12.34);
-        send(new_socket,buffer,strlen(buffer),0);
+        printf("questi sono i dati che invia il client %s\n",buffer);
+        deserialize_data(data,buffer);
+        convert_posizione(data,&lat,&lng);
+        printf("\n%lf %lf\n",lat,lng);
+        
         close(new_socket);
-/*
-        if((fp = fopen("temp.txt","r")) < 0) perror("errore apertura file");
+        
+        //send(new_socket,buffer,strlen(buffer),0);
+
+        /*if((fp = fopen("temp.txt","r")) < 0) perror("errore apertura file");
         while((fscanf(fp,"%s%lf%lf%d",nickname,&lat,&lng,&delta)) != EOF) {
             fclose(fp);
             ev = creaEvento(calcola_evento(delta),nickname,creaPosizione(lat,lng));
@@ -72,10 +70,11 @@ int main(int argc, char const *argv[])
             putc(c,stdout);
         }
         
-    */
+    
 
         
         //if(pthread_create(&thread,NULL,invia_soglia,&new_socket) < 0) perror("errore nella creazione del thread");
+        */
 
     }
 }
@@ -124,5 +123,21 @@ void *invia_messaggio_client(void *arg) {
     }
     printf("messaggio inviato\n");
     close(socket);
+}
+
+void convert_lat_lng(char data[][BUFSIZ],double *lat,double *lng) {
+    *lat = strtod(data[1],NULL);
+    *lng = strtod(data[2],NULL);
+    printf("salve sono convert e ho finito");
+}
+
+void deserialize_data(char data[][BUFSIZ],char *token) {
+    char *temp = strtok(token,";");
+    size_t i = 0;
+    while (temp != NULL) {
+            strcpy(data[i++],temp);
+            temp = strtok(NULL,";");
+        }
+        printf("salve io ho finito\n");
 }
 
