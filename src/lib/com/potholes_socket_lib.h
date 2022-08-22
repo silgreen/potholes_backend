@@ -7,7 +7,7 @@
 #define SOGLIA "3"
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
-void *invia_soglia(void*arg);
+void invia_soglia(int socket);
 char* calcola_evento(double delta); 
 void init_address(struct sockaddr_in *address);
 

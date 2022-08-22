@@ -1,18 +1,11 @@
 #include "../lib/com/potholes_socket_lib.h"
 
 void *invia_messaggio_client(void *arg);
-void gestisci_richiesta(int socket);
+void *gestisci_richiesta(void *arg);
 void convert_lat_lng(char data[][BUFSIZ],double *lat,double *lng);
 void deserialize_data(char data[][BUFSIZ],char *token);
 Evento stringToEvento(char data[][BUFSIZ],double *lat,double *lng,double *delta);
-
-/*
-    TODO 22/08/2022
-    1. connessionni concorrenti
-    2. multithreading con ritorno?
-    3. scrittura concorrente buffer
-    4. sprintf concorrente
-*/
+void *insertEventoFile(void *arg);
 
 int main(int argc, char const *argv[])
 {   
@@ -20,7 +13,6 @@ int main(int argc, char const *argv[])
     Posizione pos = NULL;
     char buffer[BUFSIZ]; 
     char nickname[BUFSIZ];
-    char data[4][BUFSIZ] = {""};
     int server_fd,new_socket,addr_len;
     int option = 1;
     struct sockaddr_in address;
@@ -44,17 +36,12 @@ int main(int argc, char const *argv[])
 
     listen(server_fd,5);
 
-    while (true)
-    {  
+    while (true) {  
         if((new_socket = accept(server_fd,NULL,NULL)) < 0) perror("errore durante l'accept");
-        if((read(new_socket,buffer,BUFSIZ)) < 0) perror("errore durante la lettura");
-        printf("questi sono i dati che invia il client %s\n",buffer);
-        deserialize_data(data,buffer);
-        ev = stringToEvento(data,&lat,&lng,&delta);
-        printEvento(ev);
-        
-        close(new_socket);
-        
+        if((pthread_create(&thread,NULL,gestisci_richiesta,&new_socket)) < 0) perror("errore nella creazione del thread");
+        //deserialize_data(data,buffer);
+        //ev = stringToEvento(data,&lat,&lng,&delta);
+        //printEvento(ev);
         /*
 
             if ((fp = fopen("../../data/events.txt","a")) < 0) perror("errore apertura file");
@@ -68,20 +55,46 @@ int main(int argc, char const *argv[])
     }
 }
 
-void gestisci_richiesta(int socket) {
+void *insertEventoFile(void *arg) {
+    Evento evento = (Evento) arg;
+    FILE *fp;
+    pthread_mutex_lock(&mutex);
+    printf("sono il thread che gestisce %s\n",evento->nickname);
+    sleep(5);
+    if ((fp = fopen("../../data/events.txt","a")) < 0) perror("errore apertura file");
+            fprintf(fp,"%s %s %lf %lf\n",evento->nickname,evento->tipo_evento,evento->posizione->latitudine,evento->posizione->longitudine);
+    fclose(fp);
+    pthread_mutex_unlock(&mutex);
+    printf("il thread che gestisce %s ha finito\n",evento->nickname);
+}
+
+void *gestisci_richiesta(void *arg) {
     pthread_t thread;
-    char lettura_richiesta[1024];
-    read(socket,lettura_richiesta,sizeof(lettura_richiesta));
+    int socket = *(int*)arg;
+    char buffer[BUFSIZ] = {""};
+    char *resp = "ok";
+    read(socket,buffer,sizeof(buffer));
+    
+    if(strcmp(buffer,"soglia") == 0) {
+        invia_soglia(socket);
 
-    if(strcmp(lettura_richiesta,"soglia") == 0) {
-        pthread_create(thread,NULL,invia_soglia,&socket);
-
-    } else if(strcmp(lettura_richiesta,"lista") == 0) {
+    } else if(strcmp(buffer,"lista") == 0) {
         
-    } else if (strcmp(lettura_richiesta,"evento") == 0) {
-
-    } else printf("operazione non supportata\n");
-
+    } else if (strcmp(buffer,"evento") == 0) {
+        double lat,lng,delta;
+        char data[4][BUFSIZ] = {""};
+        send(socket,resp,strlen(resp),0);
+        memset(buffer,0,strlen(buffer));
+        read(socket,buffer,sizeof(buffer));
+        printf("il contenuto del buffer prima di deserialize %s\n",buffer);
+        deserialize_data(data,buffer);
+        Evento ev = NULL; 
+        ev = stringToEvento(data,&lat,&lng,&delta);
+        send(socket,ev->tipo_evento,strlen(ev->tipo_evento),0);
+        close(socket);
+        pthread_create(&thread,NULL,insertEventoFile,ev);
+        
+    } else printf("operazione non supportata %s\n",buffer);
 }
 
 char* calcola_evento(double delta) {
@@ -94,8 +107,7 @@ void init_address(struct sockaddr_in *address) {
     address->sin_addr.s_addr = INADDR_ANY;
 }
 
-void *invia_soglia(void *arg) {
-    int socket = *(int*)arg;
+void invia_soglia(int socket) {
     char buffer[10];
     strcpy(buffer,SOGLIA);
 
@@ -132,6 +144,6 @@ void deserialize_data(char data[][BUFSIZ],char *token) {
             strcpy(data[i++],strtoken);
             strtoken = strtok(NULL,";");
         }
-        printf("salve io ho finito\n");
+        printf("matrice riempita con deserialize\n");
 }
 

@@ -4,7 +4,7 @@ int main(int argc, char const *argv[])
 {
     struct sockaddr_in address;
 
-    char *data = "alfonso;12.323;33.33;11";
+    char *data = "gino;14.323;22.33;-10";
     char *tipo_richiesta = "evento";
     char buff[BUFSIZ];
 
