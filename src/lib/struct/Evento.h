@@ -24,9 +24,11 @@ typedef struct EventoList_struct *EventoList;
 /***********************************************************/
 
 /* Definizione metodi */
-EventoList creaEventoList(Evento evento);
 Evento creaEvento(char *tipo_evento,char *nickname,Posizione posizione);
+Evento stringToEvento(char data[][BUFSIZ],double *lat,double *lng,double *delta);
+EventoList creaEventoList(Evento evento);
 EventoList inserisciEvento(EventoList list,Evento evento);
-void printEvento(Evento evento);
 EventoList mostraEventiVicini(EventoList evento_list,EventoList resultList,Posizione posizione);
+char* calcola_evento(double delta); 
+void printEvento(Evento evento);
 void printEventoList(EventoList list);

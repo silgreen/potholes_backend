@@ -1,16 +1,6 @@
 #include "../lib/struct/Evento.h"
 #define VICINANZA 10
 
-EventoList creaEventoList(Evento evento) {
-    if(evento != NULL) {
-        EventoList ev = (EventoList) malloc(sizeof(struct EventoList_struct));
-        ev->event = evento;
-        ev->next = NULL;
-        return ev;
-    }
-    return NULL;
-}
-
 Evento creaEvento(char *tipo_evento,char *nickname,Posizione position) {
     if(position != NULL && (strcmp(tipo_evento,BUCA) == 0) || strcmp(tipo_evento,DOSSO) == 0) {
         Evento evento = (Evento) malloc(sizeof(struct Evento_struct));
@@ -23,11 +13,24 @@ Evento creaEvento(char *tipo_evento,char *nickname,Posizione position) {
     return NULL;
 }
 
-void printEvento(Evento evento) {
-    if(evento == NULL) return;
-    printf("%s | ",evento->nickname);
-    printf("%s | ",evento->tipo_evento);
-    printPosizione(evento->posizione);
+Evento stringToEvento(char data[][BUFSIZ],double *lat,double *lng,double *delta) {
+    char nick[BUFSIZ] = {""};
+    strcpy(nick,data[0]);
+    *lat = strtod(data[1],NULL);
+    *lng = strtod(data[2],NULL);
+    *delta = strtod(data[3],NULL);
+    memset(data,0,sizeof(data[0][0])*4*BUFSIZ); //azzeramento matrice
+    return creaEvento(calcola_evento(*delta),nick,creaPosizione(*lat,*lng));
+}
+
+EventoList creaEventoList(Evento evento) {
+    if(evento != NULL) {
+        EventoList ev = (EventoList) malloc(sizeof(struct EventoList_struct));
+        ev->event = evento;
+        ev->next = NULL;
+        return ev;
+    }
+    return NULL;
 }
 
 EventoList inserisciEvento(EventoList list, Evento evento) {
@@ -36,19 +39,19 @@ EventoList inserisciEvento(EventoList list, Evento evento) {
     return list;
 }
 
+char* calcola_evento(double delta) {
+    return delta > 0 ? DOSSO : BUCA; 
+}
+
+void printEvento(Evento evento) {
+    if(evento == NULL) return;
+    printf("%s | ",evento->nickname);
+    printf("%s | ",evento->tipo_evento);
+    printPosizione(evento->posizione);
+}
+
 void printEventoList(EventoList eventoList) {
     if(eventoList == NULL) return;
     printEvento(eventoList->event);
     printEventoList(eventoList->next);
 }
-
-EventoList mostraEventiVicini(EventoList eventoList,EventoList resultList,Posizione position) {
-    if(eventoList != NULL && position != NULL) {
-        if(calcolaDistanza(eventoList->event->posizione,position) <= VICINANZA) {
-        resultList = inserisciEvento(resultList,eventoList->event);
-        }
-        resultList = mostraEventiVicini(eventoList->next,resultList,position);
-    }
-    return resultList;
-}
-
