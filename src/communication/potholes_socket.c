@@ -4,21 +4,28 @@ void *invia_messaggio_client(void *arg);
 void gestisci_richiesta(int socket);
 void convert_lat_lng(char data[][BUFSIZ],double *lat,double *lng);
 void deserialize_data(char data[][BUFSIZ],char *token);
+Evento stringToEvento(char data[][BUFSIZ],double *lat,double *lng,double *delta);
+
+/*
+    TODO 22/08/2022
+    1. connessionni concorrenti
+    2. multithreading con ritorno?
+    3. scrittura concorrente buffer
+    4. sprintf concorrente
+*/
 
 int main(int argc, char const *argv[])
 {   
+    Evento ev = NULL;
+    Posizione pos = NULL;
     char buffer[BUFSIZ]; 
     char nickname[BUFSIZ];
     char data[4][BUFSIZ] = {""};
-    char *strtoken;
-    Evento ev = NULL;
-    Posizione pos = NULL;
-    int server_fd,new_socket,delta,addr_len;
+    int server_fd,new_socket,addr_len;
     int option = 1;
     struct sockaddr_in address;
     pthread_t thread;
-    double lat,lng;
-    char str2[BUFSIZ];
+    double lat,lng,delta;
     
     
     if((server_fd = socket(AF_INET,SOCK_STREAM,0)) < 0) {
@@ -43,35 +50,17 @@ int main(int argc, char const *argv[])
         if((read(new_socket,buffer,BUFSIZ)) < 0) perror("errore durante la lettura");
         printf("questi sono i dati che invia il client %s\n",buffer);
         deserialize_data(data,buffer);
-        convert_posizione(data,&lat,&lng);
-        printf("\n%lf %lf\n",lat,lng);
+        ev = stringToEvento(data,&lat,&lng,&delta);
+        printEvento(ev);
         
         close(new_socket);
         
-        //send(new_socket,buffer,strlen(buffer),0);
-
-        /*if((fp = fopen("temp.txt","r")) < 0) perror("errore apertura file");
-        while((fscanf(fp,"%s%lf%lf%d",nickname,&lat,&lng,&delta)) != EOF) {
-            fclose(fp);
-            ev = creaEvento(calcola_evento(delta),nickname,creaPosizione(lat,lng));
-            printEvento(ev);
-
-            if((send(new_socket,ev->tipo_evento,strlen(ev->tipo_evento),0)) < 0) perror("invio non riuscito");
-            close(new_socket);
+        /*
 
             if ((fp = fopen("../../data/events.txt","a")) < 0) perror("errore apertura file");
             fprintf(fp,"%s %s %lf %lf\n",ev->nickname,ev->tipo_evento,ev->posizione->latitudine,ev->posizione->longitudine);
         }
         fclose(fp);
-
-        if ((fp = fopen("../../data/events.txt","r")) < 0) perror("errore apertura file");
-        char c;
-        while(c = getc(fp) != "\n") {
-            putc(c,stdout);
-        }
-        
-    
-
         
         //if(pthread_create(&thread,NULL,invia_soglia,&new_socket) < 0) perror("errore nella creazione del thread");
         */
@@ -125,18 +114,23 @@ void *invia_messaggio_client(void *arg) {
     close(socket);
 }
 
-void convert_lat_lng(char data[][BUFSIZ],double *lat,double *lng) {
+Evento stringToEvento(char data[][BUFSIZ],double *lat,double *lng,double *delta) {
+    char nick[BUFSIZ] = {""};
+    strcpy(nick,data[0]);
     *lat = strtod(data[1],NULL);
     *lng = strtod(data[2],NULL);
-    printf("salve sono convert e ho finito");
+    *delta = strtod(data[3],NULL);
+    printf("salve sono stringToEvento e ho finito\n");
+    memset(data,0,sizeof(data[0][0])*4*BUFSIZ); //azzeramento matrice
+    return creaEvento(calcola_evento(*delta),nick,creaPosizione(*lat,*lng));
 }
 
 void deserialize_data(char data[][BUFSIZ],char *token) {
-    char *temp = strtok(token,";");
+    char *strtoken = strtok(token,";");
     size_t i = 0;
-    while (temp != NULL) {
-            strcpy(data[i++],temp);
-            temp = strtok(NULL,";");
+    while (strtoken != NULL) {
+            strcpy(data[i++],strtoken);
+            strtoken = strtok(NULL,";");
         }
         printf("salve io ho finito\n");
 }
