@@ -2,6 +2,14 @@
 
 int init_server();
 
+/*
+    TODO 23/08/2022
+    1. lista con relative funzioni
+    2. log completi
+    3. modulo client/accendere il server
+    4. polish codice
+*/
+
 int main(int argc, char const *argv[])
 {   
     char buffer[BUFSIZ]; 
@@ -11,6 +19,9 @@ int main(int argc, char const *argv[])
     pthread_t thread;
     double lat,lng,delta;
     int server_fd = init_server();
+
+    printf("\n******* Benvenuto in PotHolesServer *************\n");
+    printf("** L'app che ti permette di rilevare buche e dossi **\n");
 
     while (true) {
         socklen_t client_addr_len = sizeof(struct sockaddr_in);  
