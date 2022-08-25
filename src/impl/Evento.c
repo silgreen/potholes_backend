@@ -39,9 +39,79 @@ EventoList inserisciEvento(EventoList list, Evento evento) {
     return list;
 }
 
+EventoList mostraEventiVicini(EventoList resultList,Posizione posizione) {
+    FILE *fp;
+    if((fp = fopen("../../data/events.txt","r")) < 0) perror("errore nell'apertura del file");
+    char nickname[BUFSIZ], tipoEvento[BUFSIZ];
+    double lat,lng;
+    Posizione pos;
+    while (fscanf(fp,"%s%s%lf%lf",nickname,tipoEvento,&lat,&lng) != EOF) {
+        pos = creaPosizione(lat,lng);
+        if(calcolaDistanza(posizione,pos) <= VICINANZA) {
+            resultList = inserisciEvento(resultList,creaEvento(tipoEvento,nickname,pos));
+        }
+        
+    }
+    fclose(fp);
+    return resultList;
+}
+
+SendDataThread creaSendDataThread(Posizione pos,int socket) {
+    if(pos == NULL ) return NULL;
+    SendDataThread tmp = (SendDataThread) malloc(sizeof(struct SendData));
+    tmp->posizione = pos;
+    tmp->socket = socket;
+    return tmp;
+}
+
+void deallocaLista(EventoList list) {
+    if(list == NULL) return;
+    deallocaLista(list->next);
+    free(list);
+}
+
 char* calcola_evento(double delta) {
     return delta > 0 ? DOSSO : BUCA; 
 }
+
+void *mostraEventiViciniThread(void *arg) {
+    EventoList lista = NULL; 
+    SendDataThread data = (SendDataThread)arg;
+    pthread_mutex_t mutexEvento;
+    pthread_mutex_init(&mutexEvento,NULL);
+    pthread_mutex_lock(&mutexEvento);
+    lista = mostraEventiVicini(lista,data->posizione);
+    pthread_mutex_unlock(&mutexEvento);
+    if(lista != NULL) {
+        printEventoList(lista);
+        char buffer[BUFSIZ];
+        serializzaEventList(lista,buffer);
+        if(send(data->socket,buffer,strlen(buffer),0) < 0) perror("invio non riuscito");
+        printf("%s\n",buffer);
+    } else printf("nessun evento vicino trovato\n");
+    close(data->socket);
+    free(data);
+    deallocaLista(lista);
+}
+
+char* eventoToString(Evento evento, char *result) {
+    double lat,lng;
+    sprintf(result,"%s;%s;%lf;%lf|",evento->nickname,evento->tipo_evento,evento->posizione->latitudine,evento->posizione->longitudine);
+    return result;
+}
+
+void serializzaEventList(EventoList eventList, char *result) {
+    EventoList eventListTemp = eventList;
+    char buffer[BUFSIZ];
+    while (eventListTemp != NULL) {
+        strcat(result,eventoToString(eventListTemp->event,buffer));
+        eventListTemp = eventListTemp->next;
+        memset(buffer,0,sizeof(buffer));
+    }
+    free(eventListTemp);
+}
+
+
 
 void printEvento(Evento evento) {
     if(evento == NULL) return;

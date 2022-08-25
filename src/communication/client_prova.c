@@ -4,8 +4,8 @@ int main(int argc, char const *argv[])
 {
     struct sockaddr_in address;
 
-    char *data = "alfonso;12.323;33.33;11";
-    char *tipo_richiesta = "evento";
+    char *data = "10;10";
+    char *tipo_richiesta = "lista";
     char buff[BUFSIZ];
 
     int fd;
@@ -23,7 +23,7 @@ int main(int argc, char const *argv[])
         printf("la stringa che sto inviando al server: %s\n",data);
         send(fd,data,strlen(data),0);
         read(fd,buff,sizeof(buff));
-        printf("l'evento rilevato dal server è: %s\n",buff);
+        printf("la lista risultante è: %s\n",buff);
     }
     return 0;
 }

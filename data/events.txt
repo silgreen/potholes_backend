@@ -1,0 +1,6 @@
+alberto Dosso 23.45 55.5
+aldo Buca 55.45 12.5
+francuccio Dosso 89.45 23.5
+gino Buca 88.45 12.5
+gennaro Dosso 15.45 10.5
+carlo Buca 12.10 10.11

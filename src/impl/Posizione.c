@@ -1,5 +1,4 @@
 #include "../lib/struct/Posizione.h"
-#include "../lib/dependencies.h"
 
 bool validationLatLng(double lat, double lng) {
     return (lat >= -90 && lat <= 90) && (lng >= -180 && lng <= 180);
@@ -21,7 +20,7 @@ void printPosizione(Posizione position) {
 }
 
 double calcolaDistanza(Posizione position1,Posizione position2) {
-    double calcoloLat = pow(position1->latitudine - position2->latitudine,2);
-    double calcoloLng = pow(position1->longitudine - position2->longitudine,2);
+    double calcoloLat = pow((position1->latitudine - position2->latitudine),2);
+    double calcoloLng = pow((position1->longitudine - position2->longitudine),2);
     return sqrt(calcoloLat + calcoloLng); 
 }

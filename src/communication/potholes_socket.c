@@ -3,8 +3,7 @@
 int init_server();
 
 /*
-    TODO 23/08/2022
-    1. lista con relative funzioni
+    TODO 25/08/2022
     2. log completi
     3. modulo client/accendere il server
     4. polish codice
@@ -72,19 +71,23 @@ void *gestisci_richiesta(void *arg) {
     char buffer[BUFSIZ] = {""};
     char *resp = "ok";
     read(socket,buffer,sizeof(buffer));
+    char data[4][BUFSIZ] = {""};
     
     if(strcmp(buffer,REQ_SOGLIA) == 0) {
         invia_soglia(socket);
-
     } else if(strcmp(buffer,REQ_LISTA) == 0) {
-        
-    } else if (strcmp(buffer,REQ_EVENTO) == 0) {
-        double lat,lng,delta;
-        char data[4][BUFSIZ] = {""};
         send(socket,resp,strlen(resp),0);
         memset(buffer,0,strlen(buffer));
         read(socket,buffer,sizeof(buffer));
-        printf("il contenuto del buffer prima di deserialize %s\n",buffer);
+        deserialize_data(data,buffer);
+        SendDataThread dataThread = NULL;
+        dataThread = creaSendDataThread(creaPosizione(strtod(data[0],NULL),strtod(data[1],NULL)),socket);
+        pthread_create(&thread,NULL,mostraEventiViciniThread,dataThread);
+    } else if (strcmp(buffer,REQ_EVENTO) == 0) {
+        double lat,lng,delta;
+        send(socket,resp,strlen(resp),0);
+        memset(buffer,0,strlen(buffer));
+        read(socket,buffer,sizeof(buffer));
         deserialize_data(data,buffer);
         Evento ev = stringToEvento(data,&lat,&lng,&delta);
         send(socket,ev->tipo_evento,strlen(ev->tipo_evento),0);
@@ -118,4 +121,3 @@ void deserialize_data(char data[][BUFSIZ],char *token) {
         }
         printf("matrice riempita con deserialize\n");
 }
-
