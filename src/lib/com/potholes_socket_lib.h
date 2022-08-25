@@ -10,7 +10,7 @@
 #define REQ_EVENTO "evento"
 
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
-
+int init_server();
 void invia_soglia(int socket);
 void init_address(struct sockaddr_in *address);
 void *gestisci_richiesta(void *arg);

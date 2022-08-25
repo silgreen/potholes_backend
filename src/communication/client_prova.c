@@ -6,6 +6,7 @@ int main(int argc, char const *argv[])
 
     char *data = "10;10";
     char *tipo_richiesta = "lista";
+    char *nickname = "pino";
     char buff[BUFSIZ];
 
     int fd;
@@ -15,8 +16,14 @@ int main(int argc, char const *argv[])
     inet_pton(AF_INET,"127.0.0.1",&address.sin_addr);
 
     connect(fd,(struct sockaddr *)&address,sizeof(address));
-    if(send(fd,tipo_richiesta,sizeof(tipo_richiesta),0) < 0) perror("errore nell'invio della richiesta");
-
+    if(send(fd,nickname,sizeof(nickname),0) < 0) perror("errore nell'invio del nickname\n");
+    read(fd,buff,BUFSIZ);
+    if(strcmp("ok",buff) == 0) {
+        memset(buff,0,strlen(buff));
+        if(send(fd,tipo_richiesta,sizeof(tipo_richiesta),0) < 0) perror("errore nell'invio della richiesta");
+    }
+    
+    memset(buff,0,strlen(buff));
     read(fd,buff,BUFSIZ);
     if(strcmp("ok",buff) == 0) {
         memset(buff,0,strlen(buff));

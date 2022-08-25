@@ -90,6 +90,7 @@ void *mostraEventiViciniThread(void *arg) {
         printf("%s\n",buffer);
     } else printf("nessun evento vicino trovato\n");
     close(data->socket);
+    printf("disconnessione con il client avvenuta\n");
     free(data);
     deallocaLista(lista);
 }

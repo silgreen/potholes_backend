@@ -1,7 +1,5 @@
 #include "../lib/com/potholes_socket_lib.h"
 
-int init_server();
-
 /*
     TODO 25/08/2022
     2. log completi
@@ -54,6 +52,32 @@ int init_server() {
     return server_fd;
 }
 
+void init_address(struct sockaddr_in *address) {
+    address->sin_family = AF_INET;
+    address->sin_port = htons(8080);
+    address->sin_addr.s_addr = INADDR_ANY;
+}
+
+void invia_soglia(int socket) {
+    char buffer[10];
+    strcpy(buffer,SOGLIA);
+
+    if(send(socket,buffer,sizeof(buffer),0) < 0) perror("errore nell'invio della soglia");
+    printf("soglia inviata al client\n");
+    close(socket);
+    printf("disconnessione con il client avvenuta\n");
+}
+
+void deserialize_data(char data[][BUFSIZ],char *token) {
+    char *strtoken = strtok(token,";");
+    size_t i = 0;
+    while (strtoken != NULL) {
+            strcpy(data[i++],strtoken);
+            strtoken = strtok(NULL,";");
+        }
+        printf("matrice riempita con deserialize\n");
+}
+
 void *insertEventoFile(void *arg) {
     Evento evento = (Evento) arg;
     FILE *fp;
@@ -69,19 +93,28 @@ void *gestisci_richiesta(void *arg) {
     pthread_t thread;
     int socket = *(int*)arg;
     char buffer[BUFSIZ] = {""};
-    char *resp = "ok";
-    read(socket,buffer,sizeof(buffer));
     char data[4][BUFSIZ] = {""};
+    char *resp = "ok";
+    char *client;
+
+    if(read(socket,buffer,BUFSIZ) < 0) perror("errore nella lettura del nickname del client\n");
+    printf("richiesta in arrivo dal client %s\n",buffer);
+    strcpy(client,buffer);
+    
+    if(send(socket,resp,strlen(resp),0) < 0) perror("errore nell'invio della risposta al client\n");
+
+    memset(buffer,0,BUFSIZ);
+    if(read(socket,buffer,BUFSIZ) < 0) perror("errore nella lettura della richiesta del client\n");
     
     if(strcmp(buffer,REQ_SOGLIA) == 0) {
         invia_soglia(socket);
     } else if(strcmp(buffer,REQ_LISTA) == 0) {
-        send(socket,resp,strlen(resp),0);
+        if(send(socket,resp,strlen(resp),0) < 0) perror("errore nell'invio della risposta al client\n");
+
         memset(buffer,0,strlen(buffer));
-        read(socket,buffer,sizeof(buffer));
+        if(read(socket,buffer,BUFSIZ) < 0) perror("errore nella lettura dei dati inviati dal client\n");
         deserialize_data(data,buffer);
-        SendDataThread dataThread = NULL;
-        dataThread = creaSendDataThread(creaPosizione(strtod(data[0],NULL),strtod(data[1],NULL)),socket);
+        SendDataThread dataThread = creaSendDataThread(creaPosizione(strtod(data[0],NULL),strtod(data[1],NULL)),socket);
         pthread_create(&thread,NULL,mostraEventiViciniThread,dataThread);
     } else if (strcmp(buffer,REQ_EVENTO) == 0) {
         double lat,lng,delta;
@@ -92,32 +125,11 @@ void *gestisci_richiesta(void *arg) {
         Evento ev = stringToEvento(data,&lat,&lng,&delta);
         send(socket,ev->tipo_evento,strlen(ev->tipo_evento),0);
         close(socket);
+        printf("disconessione con %s avvenuta\n",client);
         pthread_create(&thread,NULL,insertEventoFile,ev);
-        
-    } else printf("operazione non supportata %s\n",buffer);
-}
-
-void init_address(struct sockaddr_in *address) {
-    address->sin_family = AF_INET;
-    address->sin_port = htons(8080);
-    address->sin_addr.s_addr = INADDR_ANY;
-}
-
-void invia_soglia(int socket) {
-    char buffer[10];
-    strcpy(buffer,SOGLIA);
-
-    if(send(socket,buffer,sizeof(buffer),0) < 0) perror("errore nell'invio della soglia");
-    printf("soglia inviata al client\n");
-    close(socket);
-}
-
-void deserialize_data(char data[][BUFSIZ],char *token) {
-    char *strtoken = strtok(token,";");
-    size_t i = 0;
-    while (strtoken != NULL) {
-            strcpy(data[i++],strtoken);
-            strtoken = strtok(NULL,";");
-        }
-        printf("matrice riempita con deserialize\n");
+    } else {
+        printf("operazione non supportata %s\n",buffer);
+        close(socket);
+        printf("disconnessione con %s avvenuta\n");
+    };
 }
