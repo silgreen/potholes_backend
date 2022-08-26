@@ -3,4 +3,4 @@ aldo Buca 55.45 12.5
 francuccio Dosso 89.45 23.5
 gino Buca 88.45 12.5
 gennaro Dosso 15.45 10.5
-carlo Buca 12.10 10.11
+carlo Buca 12.10 10.11gino Dosso 14.323000 22.330000

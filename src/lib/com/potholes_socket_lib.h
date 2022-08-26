@@ -11,14 +11,13 @@
 
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 int init_server();
-Evento initEvento(int socket);
 void scriviEventoSuFile(Evento ev);
 void inviaEvento(int socket,Evento ev);
-void leggiEventoClient(int socket, char *eventoClient);
+char* leggiEventoClient(int socket);
 void inviaListaThread(int socket);
-void leggiPosizioneClient(int socket, char *posizioneClient);
-void leggiRichiesta(int socket, char *richiesta);
-void leggiClient(int socket, char *client);
+char* leggiPosizioneClient(int socket);
+char* leggiRichiesta(int socket);
+char* leggiClient(int socket);
 void svuotaBuffer(char *buffer);
 void inviaRespOk(int socket);
 void invia_soglia(int socket);

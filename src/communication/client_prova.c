@@ -4,7 +4,7 @@ int main(int argc, char const *argv[])
 {
     struct sockaddr_in address;
 
-    char *data = "10;10";
+    char *data = "pino;10;10";
     char *tipo_richiesta = "lista";
     char *nickname = "pino";
     char buff[BUFSIZ];
@@ -21,7 +21,7 @@ int main(int argc, char const *argv[])
     printf("risposta server: %s\n",buff);
     if(strcmp("ok",buff) == 0) {
         memset(buff,0,strlen(buff));
-        if(send(fd,tipo_richiesta,sizeof(tipo_richiesta),0) < 0) perror("errore nell'invio della richiesta");
+        if(send(fd,tipo_richiesta,strlen(tipo_richiesta),0) < 0) perror("errore nell'invio della richiesta");
     }
     
     memset(buff,0,strlen(buff));

@@ -28,6 +28,7 @@ typedef struct SendData
 {
     int socket;
     Posizione posizione;
+    char client[BUFSIZ];
 }SendData;
 
 typedef struct SendData *SendDataThread;
@@ -39,12 +40,12 @@ Evento creaEvento(char *tipo_evento,char *nickname,Posizione posizione);
 Evento stringToEvento(char data[][BUFSIZ]);
 EventoList creaEventoList(Evento evento);
 EventoList inserisciEvento(EventoList list,Evento evento);
-EventoList mostraEventiVicini(EventoList resultList,Posizione posizione);
-SendDataThread creaSendDataThread(Posizione pos,int socket);
+EventoList mostraEventiViciniDaFile(EventoList resultList,Posizione posizione);
+SendDataThread creaSendDataThread(char *client,Posizione pos,int socket);
 char* calcola_evento(double delta); 
 char* eventoToString(Evento evento,char *result);
 void *mostraEventiViciniThread(void *arg);
 void printEvento(Evento evento);
 void printEventoList(EventoList list);
 void deallocaLista(EventoList list);
-void serializzaEventList(EventoList eventList, char *result);
+void serializzaEventList(EventoList eventList,char *result);

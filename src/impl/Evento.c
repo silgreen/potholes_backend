@@ -14,12 +14,12 @@ Evento creaEvento(char *tipo_evento,char *nickname,Posizione position) {
 }
 
 Evento stringToEvento(char data[][BUFSIZ]) {
-    char nick[BUFSIZ] = {""};
-    strcpy(nick,data[0]);
+    char nickname[BUFSIZ] = {""};
+    strcpy(nickname,data[0]);
     double lat = strtod(data[1],NULL);
     double lng = strtod(data[2],NULL);
     double delta = strtod(data[3],NULL);
-    return creaEvento(calcola_evento(delta),nick,creaPosizione(lat,lng));
+    return creaEvento(calcola_evento(delta),nickname,creaPosizione(lat,lng));
 }
 
 EventoList creaEventoList(Evento evento) {
@@ -38,28 +38,33 @@ EventoList inserisciEvento(EventoList list, Evento evento) {
     return list;
 }
 
-EventoList mostraEventiVicini(EventoList resultList,Posizione posizione) {
+EventoList mostraEventiViciniDaFile(EventoList resultList,Posizione posizione) {
     FILE *fp;
+    pthread_mutex_t mutexEvento;
+    pthread_mutex_init(&mutexEvento,NULL);
+    pthread_mutex_lock(&mutexEvento);
     if((fp = fopen("../../data/events.txt","r")) < 0) perror("errore nell'apertura del file");
-    char nickname[BUFSIZ], tipoEvento[BUFSIZ];
+    Posizione pos = NULL;
+    char nickname[BUFSIZ] = {""}; 
+    char tipoEvento[BUFSIZ] = {""};
     double lat,lng;
-    Posizione pos;
     while (fscanf(fp,"%s%s%lf%lf",nickname,tipoEvento,&lat,&lng) != EOF) {
         pos = creaPosizione(lat,lng);
         if(calcolaDistanza(posizione,pos) <= VICINANZA) {
             resultList = inserisciEvento(resultList,creaEvento(tipoEvento,nickname,pos));
         }
-        
     }
     fclose(fp);
+    pthread_mutex_unlock(&mutexEvento);
     return resultList;
 }
 
-SendDataThread creaSendDataThread(Posizione pos,int socket) {
+SendDataThread creaSendDataThread(char *client,Posizione pos,int socket) {
     if(pos == NULL ) return NULL;
     SendDataThread tmp = (SendDataThread) malloc(sizeof(struct SendData));
     tmp->posizione = pos;
     tmp->socket = socket;
+    strcpy(tmp->client,client);
     return tmp;
 }
 
@@ -76,20 +81,14 @@ char* calcola_evento(double delta) {
 void *mostraEventiViciniThread(void *arg) {
     EventoList lista = NULL; 
     SendDataThread data = (SendDataThread)arg;
-    pthread_mutex_t mutexEvento;
-    pthread_mutex_init(&mutexEvento,NULL);
-    pthread_mutex_lock(&mutexEvento);
-    lista = mostraEventiVicini(lista,data->posizione);
-    pthread_mutex_unlock(&mutexEvento);
+    lista = mostraEventiViciniDaFile(lista,data->posizione);
     if(lista != NULL) {
-        printEventoList(lista);
-        char buffer[BUFSIZ];
-        serializzaEventList(lista,buffer);
-        if(send(data->socket,buffer,strlen(buffer),0) < 0) perror("invio non riuscito");
-        printf("%s\n",buffer);
+        char listaContent[BUFSIZ] = {""};
+        serializzaEventList(lista,listaContent);
+        if(send(data->socket,listaContent,strlen(listaContent),0) < 0) perror("invio non riuscito");
     } else printf("nessun evento vicino trovato\n");
     close(data->socket);
-    printf("disconnessione con il client avvenuta\n");
+    printf("disconessione con %s avvenuta\n",data->client);
     free(data);
     deallocaLista(lista);
 }
@@ -100,15 +99,12 @@ char* eventoToString(Evento evento, char *result) {
     return result;
 }
 
-void serializzaEventList(EventoList eventList, char *result) {
-    EventoList eventListTemp = eventList;
-    char buffer[BUFSIZ];
-    while (eventListTemp != NULL) {
-        strcat(result,eventoToString(eventListTemp->event,buffer));
-        eventListTemp = eventListTemp->next;
-        memset(buffer,0,sizeof(buffer));
+void serializzaEventList(EventoList eventoList, char *result) {
+    if(eventoList != NULL) {
+        char buffer[BUFSIZ];
+        strcat(result,eventoToString(eventoList->event,buffer));
+        serializzaEventList(eventoList->next,result);
     }
-    free(eventListTemp);
 }
 
 
