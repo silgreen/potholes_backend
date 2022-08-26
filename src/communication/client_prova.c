@@ -18,6 +18,7 @@ int main(int argc, char const *argv[])
     connect(fd,(struct sockaddr *)&address,sizeof(address));
     if(send(fd,nickname,sizeof(nickname),0) < 0) perror("errore nell'invio del nickname\n");
     read(fd,buff,BUFSIZ);
+    printf("risposta server: %s\n",buff);
     if(strcmp("ok",buff) == 0) {
         memset(buff,0,strlen(buff));
         if(send(fd,tipo_richiesta,sizeof(tipo_richiesta),0) < 0) perror("errore nell'invio della richiesta");

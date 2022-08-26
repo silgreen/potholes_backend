@@ -59,7 +59,7 @@ void init_address(struct sockaddr_in *address) {
 }
 
 void invia_soglia(int socket) {
-    char buffer[10];
+    char buffer[BUFSIZ];
     strcpy(buffer,SOGLIA);
 
     if(send(socket,buffer,sizeof(buffer),0) < 0) perror("errore nell'invio della soglia");
@@ -89,47 +89,88 @@ void *insertEventoFile(void *arg) {
     free(evento);
 }
 
-void *gestisci_richiesta(void *arg) {
-    pthread_t thread;
-    int socket = *(int*)arg;
+void leggiClient(int socket, char *client) {
     char buffer[BUFSIZ] = {""};
-    char data[4][BUFSIZ] = {""};
-    char *resp = "ok";
-    char *client;
-
     if(read(socket,buffer,BUFSIZ) < 0) perror("errore nella lettura del nickname del client\n");
     printf("richiesta in arrivo dal client %s\n",buffer);
     strcpy(client,buffer);
-    
-    if(send(socket,resp,strlen(resp),0) < 0) perror("errore nell'invio della risposta al client\n");
+}
 
-    memset(buffer,0,BUFSIZ);
+void inviaRespOk(int socket) {
+    char *resp = "ok";
+    if(send(socket,resp,sizeof(resp),0) < 0) perror("errore nell'invio della risposta al client\n");
+}
+
+void leggiRichiesta(int socket, char *richiesta) {
+    printf("salve sono nel leggi richiesta");
+    char buffer[BUFSIZ] = {""};
     if(read(socket,buffer,BUFSIZ) < 0) perror("errore nella lettura della richiesta del client\n");
-    
-    if(strcmp(buffer,REQ_SOGLIA) == 0) {
-        invia_soglia(socket);
-    } else if(strcmp(buffer,REQ_LISTA) == 0) {
-        if(send(socket,resp,strlen(resp),0) < 0) perror("errore nell'invio della risposta al client\n");
+    printf("risultato della string copy %s",strcpy(richiesta,buffer));
+}
 
-        memset(buffer,0,strlen(buffer));
-        if(read(socket,buffer,BUFSIZ) < 0) perror("errore nella lettura dei dati inviati dal client\n");
-        deserialize_data(data,buffer);
-        SendDataThread dataThread = creaSendDataThread(creaPosizione(strtod(data[0],NULL),strtod(data[1],NULL)),socket);
-        pthread_create(&thread,NULL,mostraEventiViciniThread,dataThread);
-    } else if (strcmp(buffer,REQ_EVENTO) == 0) {
-        double lat,lng,delta;
-        send(socket,resp,strlen(resp),0);
-        memset(buffer,0,strlen(buffer));
-        read(socket,buffer,sizeof(buffer));
-        deserialize_data(data,buffer);
-        Evento ev = stringToEvento(data,&lat,&lng,&delta);
-        send(socket,ev->tipo_evento,strlen(ev->tipo_evento),0);
-        close(socket);
-        printf("disconessione con %s avvenuta\n",client);
-        pthread_create(&thread,NULL,insertEventoFile,ev);
+void leggiPosizioneClient(int socket, char *posizioneClient) {
+    char buffer[BUFSIZ];
+    if(read(socket,buffer,BUFSIZ) < 0) perror("errore nella lettura dei dati inviati dal client\n");
+    strcpy(posizioneClient,buffer);
+}
+
+void leggiEventoClient(int socket, char *eventoClient) {
+    char buffer[BUFSIZ];
+    if(read(socket,buffer,sizeof(buffer)) < 0) perror("errore nella lettura dell'evento del client\n");
+    strcpy(eventoClient,buffer);
+}
+
+void inviaListaThread(int socket) {
+    char datiClient[4][BUFSIZ] = {""};
+    char *posizioneClient;
+    pthread_t thread;
+    leggiPosizioneClient(socket,posizioneClient);
+    deserialize_data(datiClient,posizioneClient);
+    SendDataThread dataThread = creaSendDataThread(creaPosizione(strtod(datiClient[0],NULL),strtod(datiClient[1],NULL)),socket);
+    pthread_create(&thread,NULL,mostraEventiViciniThread,dataThread);
+}
+
+Evento initEvento(int socket) {
+    char data[4][BUFSIZ] = {""};
+    char *eventoClient;
+    leggiEventoClient(socket,eventoClient);
+    deserialize_data(data,eventoClient);
+    return stringToEvento(data);
+}
+
+void inviaEvento(int socket, Evento evento) {
+    if(send(socket,evento->tipo_evento,strlen(evento->tipo_evento),0) < 0) perror("invio evento non riuscito");
+    close(socket);
+    printf("disconessione con %s avvenuta\n",evento->nickname);
+}
+
+void scriviEventoSuFile(Evento evento) {
+    pthread_t thread;
+    pthread_create(&thread,NULL,insertEventoFile,evento);
+}
+
+void *gestisci_richiesta(void *arg) {
+    int socket = *(int*)arg;
+    char *client;
+    char *richiesta;
+    
+    leggiClient(socket,client);
+    inviaRespOk(socket);
+    leggiRichiesta(socket,richiesta);
+    
+    if(strcmp(richiesta,REQ_SOGLIA) == 0) {
+        invia_soglia(socket);
+    } else if(strcmp(richiesta,REQ_LISTA) == 0) {
+        inviaRespOk(socket);
+        inviaListaThread(socket);
+    } else if (strcmp(richiesta,REQ_EVENTO) == 0) {
+        inviaRespOk(socket);
+        Evento evento = initEvento(socket);
+        inviaEvento(socket,evento);
+        scriviEventoSuFile(evento);
     } else {
-        printf("operazione non supportata %s\n",buffer);
+        printf("operazione non supportata\n");
         close(socket);
-        printf("disconnessione con %s avvenuta\n");
+        printf("disconnessione con %s avvenuta\n",client);
     };
 }

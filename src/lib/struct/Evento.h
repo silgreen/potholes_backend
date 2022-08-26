@@ -36,7 +36,7 @@ typedef struct SendData *SendDataThread;
 
 /* Definizione metodi */
 Evento creaEvento(char *tipo_evento,char *nickname,Posizione posizione);
-Evento stringToEvento(char data[][BUFSIZ],double *lat,double *lng,double *delta);
+Evento stringToEvento(char data[][BUFSIZ]);
 EventoList creaEventoList(Evento evento);
 EventoList inserisciEvento(EventoList list,Evento evento);
 EventoList mostraEventiVicini(EventoList resultList,Posizione posizione);

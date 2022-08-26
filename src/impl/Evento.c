@@ -13,14 +13,13 @@ Evento creaEvento(char *tipo_evento,char *nickname,Posizione position) {
     return NULL;
 }
 
-Evento stringToEvento(char data[][BUFSIZ],double *lat,double *lng,double *delta) {
+Evento stringToEvento(char data[][BUFSIZ]) {
     char nick[BUFSIZ] = {""};
     strcpy(nick,data[0]);
-    *lat = strtod(data[1],NULL);
-    *lng = strtod(data[2],NULL);
-    *delta = strtod(data[3],NULL);
-    memset(data,0,sizeof(data[0][0])*4*BUFSIZ); //azzeramento matrice
-    return creaEvento(calcola_evento(*delta),nick,creaPosizione(*lat,*lng));
+    double lat = strtod(data[1],NULL);
+    double lng = strtod(data[2],NULL);
+    double delta = strtod(data[3],NULL);
+    return creaEvento(calcola_evento(delta),nick,creaPosizione(lat,lng));
 }
 
 EventoList creaEventoList(Evento evento) {
