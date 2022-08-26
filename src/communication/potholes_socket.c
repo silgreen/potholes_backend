@@ -1,10 +1,8 @@
 #include "../lib/com/potholes_socket_lib.h"
 
 /*
-    TODO 26/08/2022
-    1. polish codice con funzioni per assottigliare main
-    2. continuare/ottimizzare logging del server
-    3. aprire aws
+    TODO 29/08/2022
+    ACCENDERE AWS!!!!
 */
 
 int main(int argc, char const *argv[])
