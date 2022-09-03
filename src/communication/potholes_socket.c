@@ -1,8 +1,10 @@
 #include "../lib/com/potholes_socket_lib.h"
 
 /*
-    TODO 29/08/2022
-    ACCENDERE AWS!!!!
+    TODO 06/09/2022
+    1. controllare che tutto funzioni
+    2. ACCENDERE AWS!!!!
+    3. installare tutte le dipendenze sulla macchina remota
 */
 
 int main(int argc, char const *argv[])
