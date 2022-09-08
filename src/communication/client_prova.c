@@ -5,7 +5,7 @@ int main(int argc, char const *argv[])
     struct sockaddr_in address;
 
     char *data = "pino;10;10";
-    char *tipo_richiesta = "lista";
+    char *tipo_richiesta = "soglia";
     char *nickname = "pino";
     char buff[BUFSIZ];
 
@@ -26,12 +26,6 @@ int main(int argc, char const *argv[])
     
     memset(buff,0,strlen(buff));
     read(fd,buff,BUFSIZ);
-    if(strcmp("ok",buff) == 0) {
-        memset(buff,0,strlen(buff));
-        printf("la stringa che sto inviando al server: %s\n",data);
-        send(fd,data,strlen(data),0);
-        read(fd,buff,sizeof(buff));
-        printf("la lista risultante è: %s\n",buff);
-    }
+    printf("il server mi ha inviato la soglia: %s\n",buff);
     return 0;
 }

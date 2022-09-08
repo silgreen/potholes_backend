@@ -95,7 +95,7 @@ void *mostraEventiViciniThread(void *arg) {
 
 char* eventoToString(Evento evento, char *result) {
     double lat,lng;
-    sprintf(result,"%s;%s;%lf;%lf|",evento->nickname,evento->tipo_evento,evento->posizione->latitudine,evento->posizione->longitudine);
+    sprintf(result,"%s;%s;%lf;%lf\n",evento->nickname,evento->tipo_evento,evento->posizione->latitudine,evento->posizione->longitudine);
     return result;
 }
 

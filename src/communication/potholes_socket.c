@@ -59,12 +59,11 @@ void init_address(struct sockaddr_in *address) {
 }
 
 void invia_soglia(int socket) {
-    char buffer[BUFSIZ];
-    strcpy(buffer,SOGLIA);
+    char buffer[BUFSIZ] = {""};
+    strcpy(buffer,"3\n");
 
-    if(send(socket,buffer,sizeof(buffer),0) < 0) perror("errore nell'invio della soglia");
+    if(send(socket,buffer,strlen(buffer),0) < 0) perror("errore nell'invio della soglia");
     printf("soglia inviata al client\n");
-    close(socket);
 }
 
 void deserialize_data(char data[][BUFSIZ],char *token) {
@@ -88,47 +87,46 @@ void *insertEventoFile(void *arg) {
     free(evento);
 }
 
-char* leggiClient(int socket) {
+void leggiClient(int socket, char *client) {
     char buffer[BUFSIZ] = {""};
-    char client[BUFSIZ] = {""};
     if(read(socket,buffer,BUFSIZ) < 0) perror("errore nella lettura del nickname del client\n");
-    printf("richiesta in arrivo dal client %s\n",buffer);
-    return strcpy(client,buffer);
+    printf("richiesta in arrivo dal client %s",buffer);
+    buffer[strlen(buffer) -1] = '\0';
+    strcpy(client,buffer);
 }
 
 void inviaRespOk(int socket) {
-    char *resp = "ok";
+    char *resp = "ok\n";
     if(send(socket,resp,strlen(resp),0) < 0) perror("errore nell'invio della risposta al client\n");
 }
 
-char* leggiRichiesta(int socket) {
+void leggiRichiesta(int socket, char *richiesta) {
     char buffer[BUFSIZ] = {""};
-    char richiesta[BUFSIZ] = {""};
     if(read(socket,buffer,BUFSIZ) < 0) perror("errore nella lettura della richiesta del client\n");
-    printf("%s\n",buffer);
-    printf("%s\n",richiesta);
-    return strcpy(richiesta,buffer);
+    buffer[strlen(buffer) -1] = '\0';
+    strcpy(richiesta,buffer);
+    printf("la richiesta in leggi richiesta è %s\n",richiesta);
 }
 
-char* leggiPosizioneClient(int socket) {
+void leggiPosizioneClient(int socket,char* posizioneClient) {
     char buffer[BUFSIZ] = {""};
-    char posizioneClient[BUFSIZ] = {""};
     if(read(socket,buffer,BUFSIZ) < 0) perror("errore nella lettura dei dati inviati dal client\n");
-    return strcpy(posizioneClient,buffer);
+    posizioneClient[strlen(posizioneClient) - 1] = '\0';
+    strcpy(posizioneClient,buffer);
 }
 
-char* leggiEventoClient(int socket) {
+void leggiEventoClient(int socket, char* eventoClient) {
     char buffer[BUFSIZ] = {""};
-    char eventoClient[BUFSIZ] = {""};
     if(read(socket,buffer,sizeof(buffer)) < 0) perror("errore nella lettura dell'evento del client\n");
-    return strcpy(eventoClient,buffer);
+    eventoClient[strlen(eventoClient) - 1] = '\0';
+    strcpy(eventoClient,buffer);
 }
 
 void inviaListaThread(int socket) {
     char datiClient[4][BUFSIZ];
-    char *posizioneClient = "";
+    char posizioneClient[BUFSIZ] = {""};
     pthread_t thread;
-    posizioneClient = leggiPosizioneClient(socket);
+    leggiPosizioneClient(socket,posizioneClient);
     deserialize_data(datiClient,posizioneClient);
     SendDataThread dataThread = creaSendDataThread(datiClient[0],creaPosizione(strtod(datiClient[1],NULL),strtod(datiClient[2],NULL)),socket);
     pthread_create(&thread,NULL,mostraEventiViciniThread,dataThread);
@@ -136,8 +134,8 @@ void inviaListaThread(int socket) {
 
 Evento initEvento(int socket) {
     char data[4][BUFSIZ] = {""};
-    char *eventoClient = "";
-    eventoClient = leggiEventoClient(socket);
+    char eventoClient[BUFSIZ] = {""};
+    leggiEventoClient(socket,eventoClient);
     deserialize_data(data,eventoClient);
     return stringToEvento(data);
 }
@@ -155,14 +153,13 @@ void scriviEventoSuFile(Evento evento) {
 
 void *gestisci_richiesta(void *arg) {
     int socket = *(int*)arg;
-    char *client;
-    char *richiesta;
+    char client[BUFSIZ] = {""};
+    char richiesta[BUFSIZ] = {""};
     
-    client = leggiClient(socket);
+    leggiClient(socket,client);
     inviaRespOk(socket);
-    richiesta = leggiRichiesta(socket);
-    
-    if(strcmp(richiesta,REQ_SOGLIA) == 0) {
+    leggiRichiesta(socket,richiesta);
+    if(strcmp(richiesta,"soglia") == 0) {
         invia_soglia(socket);
         printf("disconnessione con %s avvenuta\n",client);
     } else if(strcmp(richiesta,REQ_LISTA) == 0) {

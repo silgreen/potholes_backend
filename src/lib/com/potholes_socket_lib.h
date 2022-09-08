@@ -4,7 +4,7 @@
 #include <pthread.h>
 #include "../dependencies.h"
 #include "../struct/Evento.h"
-#define SOGLIA "3"
+#define SOGLIA "3\n"
 #define REQ_SOGLIA "soglia"
 #define REQ_LISTA "lista"
 #define REQ_EVENTO "evento"
@@ -13,11 +13,11 @@ pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 int init_server();
 void scriviEventoSuFile(Evento ev);
 void inviaEvento(int socket,Evento ev);
-char* leggiEventoClient(int socket);
+void leggiEventoClient(int socket,char* eventoClient);
 void inviaListaThread(int socket);
-char* leggiPosizioneClient(int socket);
-char* leggiRichiesta(int socket);
-char* leggiClient(int socket);
+void leggiPosizioneClient(int socket,char* posizioneClient);
+void leggiRichiesta(int socket, char* richiesta);
+void leggiClient(int socket, char* client);
 void svuotaBuffer(char *buffer);
 void inviaRespOk(int socket);
 void invia_soglia(int socket);
