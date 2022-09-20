@@ -73,7 +73,6 @@ void deserialize_data(char data[][BUFSIZ],char *token) {
             strcpy(data[i++],strtoken);
             strtoken = strtok(NULL,";");
         }
-        printf("matrice riempita con deserialize\n");
 }
 
 void *insertEventoFile(void *arg) {
@@ -85,6 +84,8 @@ void *insertEventoFile(void *arg) {
     fclose(fp);
     pthread_mutex_unlock(&mutex);
     free(evento);
+    printf("Inserito nuovo evento all'interno del file events.txt\n");
+    printf("**************************************\n");
 }
 
 void leggiClient(int socket, char *client) {
@@ -98,6 +99,7 @@ void leggiClient(int socket, char *client) {
 void inviaRespOk(int socket) {
     char *resp = "ok\n";
     if(send(socket,resp,strlen(resp),0) < 0) perror("errore nell'invio della risposta al client\n");
+    printf("invio il codice di successo %s",resp);
 }
 
 void leggiRichiesta(int socket, char *richiesta) {
@@ -105,13 +107,14 @@ void leggiRichiesta(int socket, char *richiesta) {
     if(read(socket,buffer,BUFSIZ) < 0) perror("errore nella lettura della richiesta del client\n");
     buffer[strlen(buffer) -1] = '\0';
     strcpy(richiesta,buffer);
-    printf("la richiesta in leggi richiesta è %s\n",richiesta);
+    printf("tipo richiesta: %s\n",richiesta);
 }
 
 void leggiPosizioneClient(int socket,char* posizioneClient) {
     char buffer[BUFSIZ] = {""};
     if(read(socket,buffer,BUFSIZ) < 0) perror("errore nella lettura dei dati inviati dal client\n");
     posizioneClient[strlen(posizioneClient) - 1] = '\0';
+    printf("la posizione del client in listathread %s",buffer);
     strcpy(posizioneClient,buffer);
 }
 
@@ -141,8 +144,12 @@ Evento initEvento(int socket) {
 }
 
 void inviaEvento(int socket, Evento evento) {
-    if(send(socket,evento->tipo_evento,strlen(evento->tipo_evento),0) < 0) perror("invio evento non riuscito");
+    char tipo_evento[BUFSIZ] = {""};
+    strcpy(tipo_evento,evento->tipo_evento);
+    strcat(tipo_evento,"\n");
+    if(send(socket,tipo_evento,strlen(tipo_evento),0) < 0) perror("invio evento non riuscito");
     close(socket);
+    printf("tipo evento inviato al client: %s",tipo_evento);
     printf("disconessione con %s avvenuta\n",evento->nickname);
 }
 
@@ -162,9 +169,11 @@ void *gestisci_richiesta(void *arg) {
     if(strcmp(richiesta,"soglia") == 0) {
         invia_soglia(socket);
         printf("disconnessione con %s avvenuta\n",client);
+        printf("**************************************\n");
     } else if(strcmp(richiesta,REQ_LISTA) == 0) {
         inviaRespOk(socket);
         inviaListaThread(socket);
+        printf("disconnessione con %s avvenuta\n",client);
     } else if (strcmp(richiesta,REQ_EVENTO) == 0) {
         inviaRespOk(socket);
         Evento evento = initEvento(socket);
@@ -174,5 +183,6 @@ void *gestisci_richiesta(void *arg) {
         printf("operazione non supportata\n");
         close(socket);
         printf("disconnessione con %s avvenuta\n",client);
+        printf("**************************************\n");
     };
 }

@@ -2,8 +2,8 @@
 #include "Posizione.h"
 #include <sys/socket.h>
 #include <pthread.h>
-#define BUCA "Buca\n"
-#define DOSSO "Dosso\n"
+#define BUCA "Buca"
+#define DOSSO "Dosso"
 
 /* Definizione strutture */
 typedef struct Evento_struct 
