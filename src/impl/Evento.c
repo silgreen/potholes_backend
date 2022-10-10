@@ -88,7 +88,6 @@ void *mostraEventiViciniThread(void *arg) {
         if(send(data->socket,listaContent,strlen(listaContent),0) < 0) perror("invio non riuscito");
     } else printf("nessun evento vicino trovato\n");
     close(data->socket);
-    printf("disconessione con %s avvenuta\n",data->client);
     free(data);
     deallocaLista(lista);
 }

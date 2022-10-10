@@ -81,8 +81,8 @@ void *insertEventoFile(void *arg) {
     fclose(fp);
     pthread_mutex_unlock(&mutex);
     free(evento);
-    printf("Inserito nuovo evento all'interno del file events.txt\n");
-    printf("**************************************\n");
+    printf("\nInserito nuovo evento all'interno del file events.txt\n");
+    printf("\n**************************************\n");
 }
 
 void leggiClient(int socket, char *client) {
@@ -96,7 +96,6 @@ void leggiClient(int socket, char *client) {
 void inviaRespOk(int socket) {
     char *resp = "ok\n";
     if(send(socket,resp,strlen(resp),0) < 0) perror("errore nell'invio della risposta al client\n");
-    printf("invio il codice di successo %s",resp);
 }
 
 void leggiRichiesta(int socket, char *richiesta) {
@@ -111,7 +110,6 @@ void leggiPosizioneClient(int socket,char* posizioneClient) {
     char buffer[BUFSIZ] = {""};
     if(read(socket,buffer,BUFSIZ) < 0) perror("errore nella lettura dei dati inviati dal client\n");
     posizioneClient[strlen(posizioneClient) - 1] = '\0';
-    printf("la posizione del client in listathread %s",buffer);
     strcpy(posizioneClient,buffer);
 }
 
@@ -147,7 +145,6 @@ void inviaEvento(int socket, Evento evento) {
     if(send(socket,tipo_evento,strlen(tipo_evento),0) < 0) perror("invio evento non riuscito");
     close(socket);
     printf("tipo evento inviato al client: %s",tipo_evento);
-    printf("disconessione con %s avvenuta\n",evento->nickname);
 }
 
 void scriviEventoSuFile(Evento evento) {
@@ -171,11 +168,14 @@ void *gestisci_richiesta(void *arg) {
         inviaRespOk(socket);
         inviaListaThread(socket);
         printf("disconnessione con %s avvenuta\n",client);
+        printf("**************************************\n");
     } else if (strcmp(richiesta,REQ_EVENTO) == 0) {
         inviaRespOk(socket);
         Evento evento = initEvento(socket);
         inviaEvento(socket,evento);
         scriviEventoSuFile(evento);
+        printf("disconessione con %s avvenuta\n",client);
+        printf("**************************************\n");
     } else {
         printf("operazione non supportata\n");
         close(socket);
